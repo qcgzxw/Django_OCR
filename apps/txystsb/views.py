@@ -1,12 +1,13 @@
 import requests
 import re
 import base64
+import json
 
 from django.shortcuts import render
 from django.http import HttpResponse
 from main import Sign, Post
 
-from txystsb.conf import app_id, secert_id, secert_key, bucket, urls
+from txystsb.conf import app_id, secert_id, secert_key, bucket, urls, error_message
 
 
 # Create your views here.
@@ -42,5 +43,12 @@ def upload(request):
                      headers=headers)
         r = post_image.send_image()
         responseinfo = r.content
-        print(responseinfo)
-        return HttpResponse(responseinfo)# 只实现功能，暂时不处理数据
+        print(responseinfo)# 控制台输出返回信息
+        res = json.loads(responseinfo)# 解json
+        text = []
+        if res['code'] == 0:
+            for i in res['data']['items']:
+                text.append(i['itemstring']+'<br>')
+        else:
+            text.append(error_message[res['code']])
+        return HttpResponse(text)# 返回所有已识别文字
