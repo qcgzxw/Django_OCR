@@ -5,7 +5,7 @@ import json
 
 from django.shortcuts import render
 from django.http import HttpResponse
-from main import Sign, Post
+from main import Sign, Post, json2text
 
 from txystsb.conf import app_id, secert_id, secert_key, bucket, urls, error_message
 
@@ -28,27 +28,35 @@ def upload(request):
     elif request.method == 'POST':
         url_signal = int(request.POST['type'])
         obj = request.FILES.get('image')
-        url = urls[url_signal]
+        url = urls[url_signal % 8]
         headers = {'Host': 'recognition.image.myqcloud.com',
                    "Authorization": s
                    }
 
         files = {'appid': (None, app_id),
                  'bucket': (None, bucket),
-                 'image': (None, obj.read())
+                 'image': (obj.name, obj.read(), obj.content_type)
             }
-        payload = None # 备用参数
+        # 附加参数
+        if url_signal % 8 == 0:
+            files['card_type'] = (url_signal // 8 - 1)
+        elif url_signal % 8 == 2:
+            files['type'] = (url_signal // 8 - 1)
 
-        post_image = Post(url=url, files = files, payload=payload,
+        # 备用参数
+        payload = None 
+
+        # 发送post请求
+        post_image = Post(url=url, files=files, payload=payload,
                      headers=headers)
         r = post_image.send_image()
-        responseinfo = r.content
-        print(responseinfo)# 控制台输出返回信息
-        res = json.loads(responseinfo)# 解json
-        text = []
-        if res['code'] == 0:
-            for i in res['data']['items']:
-                text.append(i['itemstring']+'<br>')
+        responseinfo = r.content.decode('utf8')
+        s = []
+        d = {}
+        res = json2text(url_signal % 8, json.loads(responseinfo))
+        if type(res[0]) != type(d):
+            s = res
         else:
-            text.append(error_message[res['code']])
-        return HttpResponse(text)# 返回所有已识别文字
+            for k,v in res[0].items():
+                s.append('<b>' + k + '</b>' + ' : ' + v + '<br>')
+        return HttpResponse(s)# 返回识别信息
