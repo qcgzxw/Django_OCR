@@ -1,6 +1,10 @@
 # Django_OCR
 接口练习，调用腾讯云OCR接口实现各种图片的识别。
 
+## 项目地址：
+目前项目已上线，[https://ocr.qcgzxw.cn](https://ocr.qcgzxw.cn/)
+
+有什么好的建议可以联系我
 ## 配置说明：
 Python 3.7
 
@@ -987,4 +991,60 @@ Django 2.1a1
 		"class": []
 	}
 }
+```
+## 笔记
+1. 如何判断字典中是否存在某个key
+> if 'key' in dict.keys():
+
+
+```
+json1 = {
+    "result_list": [
+        {
+            "code": 0,
+            "data": [
+                {
+                    "item": "公司",
+                    "value": "小文博客",
+                    "confidence": 0.9868298172950744
+                },
+            ]
+        }
+    ]
+}
+
+json2 = {
+    "code": 0,
+    "data": [
+        {
+            "item": "公司",
+            "value": "小文博客",
+            "confidence": 0.9868298172950744
+        },
+    ]
+}
+if 'result_list' in json1.keys():
+    json1 = json1['result_list'][0]
+print(json1 == json2)
+
+#True
+```
+
+2. 判断列表中是否有空字典
+> if {} in list:
+
+判断列表中的某个元素是否为空字典
+> if {} == list[-1]:
+
+```
+if {} == res[-1]:# 删除列表末尾多余的
+        res.pop()
+```
+
+3. request post/get请求后判断是否接收数据
+> 
+```
+obj = request.POST.get('key')
+if not post:# 未获取到数据
+return
 ```
